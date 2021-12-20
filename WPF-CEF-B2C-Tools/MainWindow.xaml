@@ -1,0 +1,34 @@
+﻿<Window x:Class="WPF_CEF_B2C_Tools.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPF_CEF_B2C_Tools"
+        mc:Ignorable="d"
+        xmlns:cefWpf="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
+        xmlns:cefCore="clr-namespace:CefSharp;assembly=CefSharp.Core"
+        Title="Xing 电商助手" Height="450" Width="800" Initialized="Window_Initialized">
+    <Grid>
+        <DockPanel LastChildFill="True">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="订单" IsEnabled="True">
+                    <MenuItem x:Name="menuTaobaoOrder" Header="淘宝" Click="menuTaobaoOrder_Click"></MenuItem>
+                    <MenuItem Header="京东" Click="MenuItem_Click_1"></MenuItem>
+                    <MenuItem Header="拼多多"></MenuItem>
+                </MenuItem>
+                <MenuItem Header="商品"/>
+                <MenuItem Header="报表"/>
+                <MenuItem Header="供应商"/>
+            </Menu>
+            <TabControl Name="mainTab">
+                <TabItem Header="采集TB订单">
+                    <cefWpf:ChromiumWebBrowser Address="https://trade.taobao.com/trade/itemlist/list_sold_items.htm?userSwitch=1" ></cefWpf:ChromiumWebBrowser>
+                </TabItem>
+                <TabItem Header="采集PDD订单">
+                    <cefWpf:ChromiumWebBrowser Name="cef_mms_home" Address="https://mms.pinduoduo.com/home/" ></cefWpf:ChromiumWebBrowser>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+
+    </Grid>
+</Window>
