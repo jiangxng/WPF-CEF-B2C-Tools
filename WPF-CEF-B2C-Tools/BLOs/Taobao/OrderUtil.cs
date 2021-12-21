@@ -1,7 +1,7 @@
 ﻿
 namespace WPF_CEF_B2C_Tools.BLOs.Taobao {
-    public class OrderUtil {
-        public Process GetOrder {
+    public static class OrderUtil {
+        public static Process GetOrder {
             get {
                 Process value = new Process();
                 BrowserTask task = new BrowserTask("登陆");

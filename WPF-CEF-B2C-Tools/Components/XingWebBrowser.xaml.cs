@@ -10,6 +10,7 @@ namespace WPF_CEF_B2C_Tools.Components {
     /// XingWebBrows.xaml 的交互逻辑
     /// </summary>
     public partial class XingWebBrowser : UserControl {
+        Process _process;
         public XingWebBrowser() {
             CefSettings settings = new CefSettings();
             settings.CachePath = Directory.GetCurrentDirectory() + @"\cef_cache";
@@ -19,24 +20,37 @@ namespace WPF_CEF_B2C_Tools.Components {
             if (!Cef.IsInitialized) {
                 Cef.Initialize(settings);
             }
-            browser.RequestHandler = new XingBasicRequestHandler();
-            browser.FrameLoadEnd += Cef_FrameLoadEnd;
-            browser.AddressChanged += Cef_AddressChanged;
-            browser.KeyboardHandler = new CEFKeyBoardHander();
-            InitializeComponent();
+            InitializeComponent();         
         }
         private void Cef_AddressChanged(object sender, DependencyPropertyChangedEventArgs e) {
             txtAddrees.Text = e.NewValue.ToString();
         }
         private async void Cef_FrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
             ChromiumWebBrowser cef = (ChromiumWebBrowser)sender;
-            var respons = await cef.EvaluateScriptAsync("()=>{" + BLOs.Taobao.JsSnippet.Login + "}");
+            BrowserTask task = (BrowserTask)this._process.tasks[this._process.currentTask];
+            var respons = await cef.EvaluateScriptAsync("()=>{" + task.script + "}");
             if (respons.Success && respons.Result is IJavascriptCallback) {
-                respons = await ((IJavascriptCallback)respons.Result).ExecuteAsync("HHH");
+                respons = await ((IJavascriptCallback)respons.Result).ExecuteAsync();
+                if (respons.Success) {
+                    this.RunProcess(this._process);
+                }
             }
         }
         public void RunProcess(Process process) {
+            this._process = process;
+            int index = process.currentTask + 1;
+            if (index < process.tasks.Count) {
+                process.currentTask = index;
+                BrowserTask task = (BrowserTask)process.tasks[index];
+                browser.Address = task.url;
+            }
+        }
 
+        private void UserControl_Initialized(object sender, EventArgs e) {
+            browser.RequestHandler = new XingBasicRequestHandler();
+            browser.FrameLoadEnd += Cef_FrameLoadEnd;
+            browser.AddressChanged += Cef_AddressChanged;
+            browser.KeyboardHandler = new CEFKeyBoardHander();
         }
     }
 
@@ -61,7 +75,6 @@ namespace WPF_CEF_B2C_Tools.Components {
     }
     public class XingBasicRequestHandler : CefSharp.Handler.RequestHandler {
         protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
-            Console.WriteLine("In GetResourceRequestHandler : " + request.Url);
             //Only intercept specific Url's
             //https://trade.taobao.com/trade/itemlist/list_sold_items.htm?userSwitch=1
             //https://trade.taobao.com/trade/itemlist/asyncSold.htm?event_submit_do_query=1&_input_charset=utf8&sifg=0

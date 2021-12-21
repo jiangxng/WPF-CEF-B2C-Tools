@@ -21,15 +21,6 @@
                 <MenuItem Header="供应商"/>
             </Menu>
             <TabControl Name="mainTab">
-                <TabItem Header="采集TB订单">
-                    <DockPanel LastChildFill="True">
-                        <TextBox DockPanel.Dock="Top" Name="txtTaoboAddrees" Text="" TextWrapping="Wrap" HorizontalAlignment="Stretch"/>
-                        <cefWpf:ChromiumWebBrowser Name="cef_taobao" Address="https://trade.taobao.com/trade/itemlist/list_sold_items.htm?userSwitch=1" ></cefWpf:ChromiumWebBrowser>
-                    </DockPanel>
-                </TabItem>
-                <TabItem Header="采集PDD订单">
-                    <cefWpf:ChromiumWebBrowser Name="cef_mms" Address="https://mms.pinduoduo.com/home/" ></cefWpf:ChromiumWebBrowser>
-                </TabItem>
             </TabControl>
         </DockPanel>
         
