@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         xmlns:cefWpf="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         xmlns:cefCore="clr-namespace:CefSharp;assembly=CefSharp.Core"
-        Title="Xing 电商助手" Height="450" Width="800" Initialized="Window_Initialized">
+        Title="Xing 电商助手" Height="397" Width="719" Initialized="Window_Initialized">
     <Grid>
         <DockPanel LastChildFill="True">
             <Menu DockPanel.Dock="Top">
@@ -22,13 +22,17 @@
             </Menu>
             <TabControl Name="mainTab">
                 <TabItem Header="采集TB订单">
-                    <cefWpf:ChromiumWebBrowser Address="https://trade.taobao.com/trade/itemlist/list_sold_items.htm?userSwitch=1" ></cefWpf:ChromiumWebBrowser>
+                    <DockPanel LastChildFill="True">
+                        <TextBox DockPanel.Dock="Top" Name="txtTaoboAddrees" Text="" TextWrapping="Wrap" HorizontalAlignment="Stretch"/>
+                        <cefWpf:ChromiumWebBrowser Name="cef_taobao" Address="https://trade.taobao.com/trade/itemlist/list_sold_items.htm?userSwitch=1" ></cefWpf:ChromiumWebBrowser>
+                    </DockPanel>
                 </TabItem>
                 <TabItem Header="采集PDD订单">
-                    <cefWpf:ChromiumWebBrowser Name="cef_mms_home" Address="https://mms.pinduoduo.com/home/" ></cefWpf:ChromiumWebBrowser>
+                    <cefWpf:ChromiumWebBrowser Name="cef_mms" Address="https://mms.pinduoduo.com/home/" ></cefWpf:ChromiumWebBrowser>
                 </TabItem>
             </TabControl>
         </DockPanel>
+        
 
     </Grid>
 </Window>
