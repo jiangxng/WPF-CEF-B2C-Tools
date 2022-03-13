@@ -17,6 +17,7 @@ namespace WPF_CEF_B2C_Tools.BLOs.Taobao {
 
                 task = new BrowserTask("页面路径判断，是否为等待手机确认登陆，【是】，占一个任务位置", TaskType.Fork);
                 task.Type = TaskType.Fork;
+                task.keepUrl = "https://login*";
                 process.addTask(task);
 
                 task = new BrowserTask("跳转到订单界面", TaskType.Redirect);
@@ -29,7 +30,6 @@ namespace WPF_CEF_B2C_Tools.BLOs.Taobao {
 
                 task = new BrowserTask("获取销售订单数据", TaskType.Script);
                 task.script = "";
-                task.runOnResponse = "";
                 process.addTask(task);
 
                 return process;

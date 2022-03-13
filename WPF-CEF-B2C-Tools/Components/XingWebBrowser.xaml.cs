@@ -4,6 +4,7 @@ using CefSharp.Wpf;
 using System.IO;
 using System;
 using System.Windows;
+using System.Text.RegularExpressions;
 
 namespace WPF_CEF_B2C_Tools.Components {
     public class JsEvent {
@@ -20,8 +21,9 @@ namespace WPF_CEF_B2C_Tools.Components {
     /// </summary>
     public partial class XingWebBrowser : UserControl {
         BrowserTask _task;
+        string nowUrl;
         string injection_jquery = @"
-        function () {
+        (function () {
             function getScript(url, success) {
                 var script = document.createElement('script');
                 script.src = url;
@@ -38,7 +40,7 @@ namespace WPF_CEF_B2C_Tools.Components {
                 head.appendChild(script);
             }
 
-            getScript('http://code.jquery.com/jquery-latest.min.js', function () {
+            getScript('https://code.jquery.com/jquery-latest.min.js', function () {
                 if (typeof jQuery == '') {
                     console.log('Sorry, but jQuery wasn\'t able to load');
                 } else {
@@ -48,13 +50,16 @@ namespace WPF_CEF_B2C_Tools.Components {
                     });
                 }
             });
-        };";
+        });";
 
         public XingWebBrowser() {
+
             CefSettings settings = new CefSettings();
             settings.CachePath = Directory.GetCurrentDirectory() + @"\cef_cache";
             settings.MultiThreadedMessageLoop = true;
+            // 开启跨域访问
             settings.CefCommandLineArgs.Add("proxy-auto-detect", "0");
+            // 禁用安全检查
             settings.CefCommandLineArgs.Add("--disable-web-security", "");
             if (!Cef.IsInitialized) {
                 Cef.Initialize(settings);
@@ -63,37 +68,59 @@ namespace WPF_CEF_B2C_Tools.Components {
         }
 
         private void Cef_AddressChanged(object sender, DependencyPropertyChangedEventArgs e) {
-            txtAddrees.Text = e.NewValue.ToString();
+            this.nowUrl = txtAddrees.Text = e.NewValue.ToString();
         }
-        private async void Cef_FrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
-            
+        private void Cef_FrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
             //cef.ExecuteScriptAsync(injection_jquery);
             //每次浏览器完成加载后执行【脚本流程】的【当前任务】
             //BrowserTask task = (BrowserTask)this._process.tasks[this._process.currentTask];
             //cef.ExecuteScriptAsync(task.runOnLoad);
-
+            if (this._task != null) {
+                if (this._task.Type == TaskType.Fork) {
+                    Regex reg = new Regex(this._task.keepUrl);
+                    if (!reg.IsMatch(this.nowUrl)) {
+                        this._task.Status = TaskStatus.Closed;
+                    }
+                } else {
+                    this._task.Status = TaskStatus.Closed;
+                }
+            }
         }
+
+        public void log(string msg) {
+            this.logPanel.Dispatcher.Invoke(() => {
+                this.logPanel.Text = DateTime.Now.ToLocalTime() + "\t" + msg + "\n" + this.logPanel.Text;
+            });
+        }
+
         /// <summary>
         /// 运行【任务流程】浏览器的入库
         /// </summary>
         /// <param name="process"></param>
-        public void RunTask(BrowserTask task) {
+        public async void RunTask(BrowserTask task) {
             this._task = task;
+            this.log(this._task.Title);
             if (task.Type == TaskType.Redirect) {
-                this.browser.Address = task.redirectUrl;
-                this._
+                this.browser.Dispatcher.Invoke(() => {
+                    this.browser.Address = task.redirectUrl;
+                    this._task.Status = TaskStatus.Executing;
+                });
             } else if (task.Type == TaskType.Script) {
-                ChromiumWebBrowser cef = (ChromiumWebBrowser)sender;
                 // 注入 jQuery
                 // 等待 jQuery 注入成功后再执行任务脚本【因为任务脚本依赖jQuery】
-                var respons = await cef.EvaluateScriptAsync(injection_jquery);
+                var respons = await this.browser.EvaluateScriptAsync(injection_jquery);
                 if (respons.Success && respons.Result is IJavascriptCallback) {
-                    respons = await((IJavascriptCallback)respons.Result).ExecuteAsync();
+                    respons = await ((IJavascriptCallback)respons.Result).ExecuteAsync();
                     if (respons.Success) {
-                        this.RunProcess(this._process);
+                        this.browser.ExecuteScriptAsync(task.script);
+                        this._task.Status = TaskStatus.Executing;
                     }
                 }
             }
+        }
+
+        public void Open(string url) {
+            this.browser.Address = url;
         }
 
         private void UserControl_Initialized(object sender, EventArgs e) {
@@ -101,6 +128,18 @@ namespace WPF_CEF_B2C_Tools.Components {
             browser.FrameLoadEnd += Cef_FrameLoadEnd;
             browser.AddressChanged += Cef_AddressChanged;
             browser.KeyboardHandler = new CEFKeyBoardHander();
+            browser.JavascriptObjectRepository.Settings.LegacyBindingEnabled = true;
+            browser.JavascriptObjectRepository.Register("Xing", new JsExpend(this));
+        }
+    }
+
+    public class JsExpend {
+        XingWebBrowser webBrowser;
+        public JsExpend(XingWebBrowser browser) {
+            this.webBrowser = browser;
+        }
+        public void Log(string msg) {
+            this.webBrowser.log(msg);
         }
     }
 
@@ -137,12 +176,14 @@ namespace WPF_CEF_B2C_Tools.Components {
 
     }
 
-    public class CEFKeyBoardHander : IKeyboardHandler {
+    //监听键盘事件
+    class CEFKeyBoardHander : IKeyboardHandler {
         public bool OnKeyEvent(IWebBrowser browserControl, IBrowser browser, KeyType type, int windowsKeyCode, int nativeKeyCode, CefEventFlags modifiers, bool isSystemKey) {
             if (type == KeyType.RawKeyDown) {
                 switch (windowsKeyCode) {
                     //F12
                     case 123:
+                        //打开调试工具
                         browser.ShowDevTools();
                         break;
                     //F5

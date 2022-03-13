@@ -19,9 +19,13 @@
                 <MenuItem Header="商品"/>
                 <MenuItem Header="报表"/>
                 <MenuItem Header="供应商"/>
-                <MenuItem x:Name="menuPDDBK" Header="拼多多后台" Click="menuPDDBK_Click"/>
-                <MenuItem Header="淘宝后台 "/>
-                <MenuItem Header="京喜后台"/>
+                <MenuItem x:Name="menuPDDBK" Header="拼多多卖家" Click="menuPDDBK_Click" IsEnabled="True"/>
+                <MenuItem Header="淘宝卖家" IsEnabled="True">
+                    <MenuItem Header="登陆"></MenuItem>
+                    <MenuItem Header="取回订单数据" Click="menuTaobaoOrder_Click"></MenuItem>
+                </MenuItem>
+                <MenuItem Header="京喜卖家" IsEnabled="True"/>
+                <MenuItem Header="打开测试页" Click="menuOpenTestPage_onClick" />
             </Menu>
             <TabControl Name="mainTab">
             </TabControl>

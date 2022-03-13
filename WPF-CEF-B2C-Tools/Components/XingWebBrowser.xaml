@@ -13,5 +13,6 @@
             <TextBox DockPanel.Dock="Top" Name="txtAddrees" Text="" TextWrapping="Wrap" HorizontalAlignment="Stretch"/>
             <cefWpf:ChromiumWebBrowser Name="browser" Address="" ></cefWpf:ChromiumWebBrowser>
         </DockPanel>
+        <TextBlock x:Name="logPanel" Text="" TextWrapping="Wrap" Width="671" HorizontalAlignment="Left" VerticalAlignment="Top" Height="120" Background="#66000000" Foreground="#FFFBFFAE" Margin="37,71,0,0" Focusable="True" AllowDrop="True"/>
     </Grid>
 </UserControl>

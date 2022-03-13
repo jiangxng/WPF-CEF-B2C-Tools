@@ -10,17 +10,17 @@ namespace WPF_CEF_B2C_Tools {
         // 开始运行一个流程
         public static void RunProcess(Process process, XingWebBrowser browser) {
             ProcessInstance inc = instantiateProc(process, browser);
-            BrowserTask task = (BrowserTask)inc.getNextTask();
+            BrowserTask task = (BrowserTask)inc.nextTask();
             browser.RunTask(task);
         }
         // 继续运行一个流程实例
-        public static void RunProcess(ProcessInstance instance) {
-            BrowserTask task = (BrowserTask)instance.getNextTask();
+        public static void RunProcessNext(ProcessInstance instance) {
+            BrowserTask task = (BrowserTask)instance.nextTask();
             instance.webBrowser.RunTask(task);
         }
         // 实例化一个流程
         private static ProcessInstance instantiateProc(Process process, XingWebBrowser browser) {
-            ProcessInstance inc = (ProcessInstance)process;
+            ProcessInstance inc = new ProcessInstance(process);
             inc.id = Guid.NewGuid().ToString();
             inc.webBrowser = browser;
             inc.instantiateTasks();
@@ -29,19 +29,33 @@ namespace WPF_CEF_B2C_Tools {
     }
     // 自动化脚本流程
     public class Process {
-        private int currentTaskIndex = -1;
-        protected List<Task> tasks;
-        public string id;
-
+        internal List<Task> tasks;
         public Process() {
             this.tasks = new List<Task>();
         }
-
         public void addTask(Task task) {
             this.tasks.Add(task);
         }
+    }
 
-        public Task getNextTask() {
+    public class ProcessInstance : Process {
+        protected int currentTaskIndex = -1;
+        public string id;
+        public XingWebBrowser webBrowser;
+        public ProcessInstance(Process process) {
+            this.tasks = process.tasks;
+        }
+
+        public void instantiateTasks() {
+            this.tasks.ForEach(it => {
+                it.OwnerProcess = this;
+            });
+        }
+        /// <summary>
+        /// 将指针指向下一个任务
+        /// </summary>
+        /// <returns></returns>
+        public Task nextTask() {
             this.currentTaskIndex += 1;
             if (currentTaskIndex < this.tasks.Count) {
                 return this.tasks[currentTaskIndex];
@@ -58,29 +72,23 @@ namespace WPF_CEF_B2C_Tools {
         }
     }
 
-    public class ProcessInstance : Process {
-        public XingWebBrowser webBrowser;
-        public void instantiateTasks() {
-            this.tasks.ForEach(it => {
-                it.OwnerProcess = this;
-            });
-        }
-    }
-
     public class Task {
         public TaskType Type;
         public string Title;
-        private TaskStatus status;
+        protected TaskStatus status;
         public TaskStatus Status {
             get { return status; }
             set {
                 this.status = value;
                 if (value == TaskStatus.Closed) {
-                    ProcessEngine.RunProcess(OwnerProcess);
+                    ProcessEngine.RunProcessNext(OwnerProcess);
                 }
             }
         }
         public ProcessInstance OwnerProcess;
+        public Task nextSibling() {
+            throw new NotImplementedException("待实现");
+        }
     }
 
     public class BrowserTask : Task {
@@ -93,14 +101,14 @@ namespace WPF_CEF_B2C_Tools {
         }
         public string redirectUrl { get; set; }
         public string script { get; set; }
-        public string runOnLoad { get; set; }
-        public string runOnResponse { get; set; }
+        public string keepUrl { get; set; }
     }
 
     public enum TaskType {
         Redirect,
         Script,
-        Fork
+        Fork,
+        ScriptRedirect
     }
 
     public enum TaskStatus {
