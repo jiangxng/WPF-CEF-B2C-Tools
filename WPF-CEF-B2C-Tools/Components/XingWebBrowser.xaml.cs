@@ -6,11 +6,50 @@ using System;
 using System.Windows;
 
 namespace WPF_CEF_B2C_Tools.Components {
+    public class JsEvent {
+        public string MessageText = string.Empty;
+
+
+        public void ShowTest() {
+            MessageBox.Show("this in C#.\n\r" + MessageText);
+        }
+    }
+
     /// <summary>
     /// XingWebBrows.xaml 的交互逻辑
     /// </summary>
     public partial class XingWebBrowser : UserControl {
-        Process _process;
+        BrowserTask _task;
+        string injection_jquery = @"
+        function () {
+            function getScript(url, success) {
+                var script = document.createElement('script');
+                script.src = url;
+                var head = document.getElementsByTagName('head')[0],
+                    done = false;
+                script.onload = script.onreadystatechange = function () {
+                    if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
+                        done = true;
+                        success();
+                        script.onload = script.onreadystatechange = null;
+                        head.removeChild(script);
+                    }
+                };
+                head.appendChild(script);
+            }
+
+            getScript('http://code.jquery.com/jquery-latest.min.js', function () {
+                if (typeof jQuery == '') {
+                    console.log('Sorry, but jQuery wasn\'t able to load');
+                } else {
+                    console.log('This page is now jQuerified with v' + $.fn.jquery);
+                    $(document).ready(function () {
+                        //here you can write your jquery code
+                    });
+                }
+            });
+        };";
+
         public XingWebBrowser() {
             CefSettings settings = new CefSettings();
             settings.CachePath = Directory.GetCurrentDirectory() + @"\cef_cache";
@@ -20,29 +59,40 @@ namespace WPF_CEF_B2C_Tools.Components {
             if (!Cef.IsInitialized) {
                 Cef.Initialize(settings);
             }
-            InitializeComponent();         
+            InitializeComponent();
         }
+
         private void Cef_AddressChanged(object sender, DependencyPropertyChangedEventArgs e) {
             txtAddrees.Text = e.NewValue.ToString();
         }
         private async void Cef_FrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
-            ChromiumWebBrowser cef = (ChromiumWebBrowser)sender;
-            BrowserTask task = (BrowserTask)this._process.tasks[this._process.currentTask];
-            var respons = await cef.EvaluateScriptAsync("()=>{" + task.script + "}");
-            if (respons.Success && respons.Result is IJavascriptCallback) {
-                respons = await ((IJavascriptCallback)respons.Result).ExecuteAsync();
-                if (respons.Success) {
-                    this.RunProcess(this._process);
-                }
-            }
+            
+            //cef.ExecuteScriptAsync(injection_jquery);
+            //每次浏览器完成加载后执行【脚本流程】的【当前任务】
+            //BrowserTask task = (BrowserTask)this._process.tasks[this._process.currentTask];
+            //cef.ExecuteScriptAsync(task.runOnLoad);
+
         }
-        public void RunProcess(Process process) {
-            this._process = process;
-            int index = process.currentTask + 1;
-            if (index < process.tasks.Count) {
-                process.currentTask = index;
-                BrowserTask task = (BrowserTask)process.tasks[index];
-                browser.Address = task.url;
+        /// <summary>
+        /// 运行【任务流程】浏览器的入库
+        /// </summary>
+        /// <param name="process"></param>
+        public void RunTask(BrowserTask task) {
+            this._task = task;
+            if (task.Type == TaskType.Redirect) {
+                this.browser.Address = task.redirectUrl;
+                this._
+            } else if (task.Type == TaskType.Script) {
+                ChromiumWebBrowser cef = (ChromiumWebBrowser)sender;
+                // 注入 jQuery
+                // 等待 jQuery 注入成功后再执行任务脚本【因为任务脚本依赖jQuery】
+                var respons = await cef.EvaluateScriptAsync(injection_jquery);
+                if (respons.Success && respons.Result is IJavascriptCallback) {
+                    respons = await((IJavascriptCallback)respons.Result).ExecuteAsync();
+                    if (respons.Success) {
+                        this.RunProcess(this._process);
+                    }
+                }
             }
         }
 

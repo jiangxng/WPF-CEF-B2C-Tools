@@ -1,3 +1,4 @@
+作者WX:x76784911 
 # WPF Cefsharp B2C Tools 电商助手
 基于 WPF .net Core Cefsharp 开发的电商助手工具 
 关键字 RPA WPF .net Core CefSharp 开源 
@@ -29,3 +30,24 @@
       Task,任务的描述
       Factory,定义流程
       JsLibrary，维护任务的脚本素材
+第四天：最近工作比较多，隔了好长时间没有更新
+    今天拼多多的订单突然多了起来，拼多多官方提供的后台很难用，如果要看用户的地址详情，每个单需要点两次，即使只有10单，也需要点击20次，已经无法通过人工维护，
+    所以决定需要继续完善这个订单工具，实现拼多多的订单管理，实现批量点击查看用户地址详情的功能
+    流程，
+    0.登陆
+    1.采购
+    查看订单地址详情
+    自动采购
+    备注订单状态
+    完成
+    
+
+    方式1. ExecuteScriptAsync 方法使用方式与 js 的 eval方法一样，异步执行，无返回值。
+// xxx为js的方法名称
+wb.ExecuteScriptAsync("xxx()"); 
+// 为 js 的 变量jsVar赋值 'abc'
+wb.ExecuteScriptAsync("jsVar='abc'"); 
+
+方式2. EvaluateScriptAsync 方法使用方式与 js 的 eval方法一样，异步执行，有返回值。
+
+https://blog.csdn.net/gong_hui2000/article/details/48155547
