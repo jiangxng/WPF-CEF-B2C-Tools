@@ -12,25 +12,27 @@
         <DockPanel LastChildFill="True">
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="订单" IsEnabled="True">
-                    <MenuItem x:Name="menuTaobaoOrder" Header="淘宝" Click="menuTaobaoOrder_Click"></MenuItem>
-                    <MenuItem Header="京东" Click="MenuItem_Click_1"></MenuItem>
+                    <MenuItem x:Name="menuTaobaoOrder" Header="淘宝" Click="MenuItem_Click"></MenuItem>
+                    <MenuItem Header="京东" Click="MenuItem_Click"></MenuItem>
                     <MenuItem Header="拼多多"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="商品"/>
                 <MenuItem Header="报表"/>
                 <MenuItem Header="供应商"/>
-                <MenuItem x:Name="menuPDDBK" Header="拼多多卖家" Click="menuPDDBK_Click" IsEnabled="True"/>
-                <MenuItem Header="淘宝卖家" IsEnabled="True">
-                    <MenuItem Header="登陆"></MenuItem>
-                    <MenuItem Header="取回订单数据" Click="menuTaobaoOrder_Click"></MenuItem>
+                <MenuItem x:Name="menuPDDBK" Header="拼多多卖家" Click="MenuItem_Click" IsEnabled="True"/>
+                <MenuItem Header="淘宝" IsEnabled="True">
+                    <MenuItem Header="登陆" Click="MenuItem_Click" DataContext="NtbLogin" />
+                    <MenuItem Header="取回订单数据" Click="MenuItem_Click" DataContext="tbFetchOrderData" />
                 </MenuItem>
                 <MenuItem Header="京喜卖家" IsEnabled="True"/>
-                <MenuItem Header="打开测试页" Click="menuOpenTestPage_onClick" />
+                <MenuItem Header="测试" >
+                    <MenuItem Header="打开测试页" Click="MenuItem_Click" DataContext="NopenTestPage"/>
+                    <MenuItem Header="测试植入脚本" Click="MenuItem_Click" DataContext="execInjoinScript"/>
+                </MenuItem>
             </Menu>
-            <TabControl Name="mainTab">
-            </TabControl>
+            <TabControl Name="mainTab"/>
         </DockPanel>
-        
+
 
     </Grid>
 </Window>

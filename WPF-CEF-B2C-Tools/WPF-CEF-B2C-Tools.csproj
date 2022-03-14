@@ -10,6 +10,13 @@
   <ItemGroup>
     <PackageReference Include="CefSharp.Common.NETCore" Version="96.0.180" />
     <PackageReference Include="CefSharp.Wpf.NETCore" Version="96.0.180" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="BLOs\Test\test.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

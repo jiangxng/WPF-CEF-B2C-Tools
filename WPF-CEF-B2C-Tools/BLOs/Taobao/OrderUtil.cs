@@ -1,26 +1,16 @@
 ﻿
+using System;
+using System.Collections;
+
 namespace WPF_CEF_B2C_Tools.BLOs.Taobao {
-    public static class OrderUtil {
+    public class OrderUtil  {
         // 获取淘宝买家的订单，
         // 返回一个处理流程对象
-        public static Process GetOrder {
+        public static Process FetchOrderData {
             get {
                 Process process = new Process();
 
-                BrowserTask task = new BrowserTask("打开登陆页面", TaskType.Redirect);
-                task.redirectUrl = "https://login.taobao.com/member/login.jhtml";
-                process.addTask(task);
-
-                task = new BrowserTask("输入用户名密码，执行登陆", TaskType.Script);
-                task.script = JsSnippet.Login;
-                process.addTask(task);
-
-                task = new BrowserTask("页面路径判断，是否为等待手机确认登陆，【是】，占一个任务位置", TaskType.Fork);
-                task.Type = TaskType.Fork;
-                task.keepUrl = "https://login*";
-                process.addTask(task);
-
-                task = new BrowserTask("跳转到订单界面", TaskType.Redirect);
+                BrowserTask task = new BrowserTask("跳转到订单界面", TaskType.Redirect);
                 task.redirectUrl = "https://trade.taobao.com/trade/itemlist/list_sold_items.htm";
                 process.addTask(task);
 
@@ -35,6 +25,20 @@ namespace WPF_CEF_B2C_Tools.BLOs.Taobao {
                 return process;
             }
         }
-    }
+        public static Process Login {
+            get {
+                Process process = new Process();
 
+                BrowserTask task = new BrowserTask("打开登陆页面", TaskType.Redirect);
+                task.redirectUrl = "https://login.taobao.com/member/login.jhtml";
+                process.addTask(task);
+
+                task = new BrowserTask("输入用户名密码，执行登陆", TaskType.Script);
+                task.script = JsSnippet.Login;
+                process.addTask(task);
+
+                return process;
+            }
+        }
+    }
 }

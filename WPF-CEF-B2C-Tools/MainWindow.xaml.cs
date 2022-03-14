@@ -1,7 +1,9 @@
 ﻿using CefSharp;
 using CefSharp.Wpf;
 using System;
+using System.Collections;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using WPF_CEF_B2C_Tools.Components;
@@ -11,6 +13,8 @@ namespace WPF_CEF_B2C_Tools {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
+        Hashtable scripts;
+
         public MainWindow() {
             InitializeComponent();
             this.Width = 1336;
@@ -32,27 +36,26 @@ namespace WPF_CEF_B2C_Tools {
         }
 
         private void Window_Initialized(object sender, EventArgs e) {
-            //XingWebBrowser browser = this.appendTabItem("淘宝订单采集");
-            //ProcessEngine.RunProcess(BLOs.Taobao.OrderUtil.GetOrder, browser);
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            this.scripts = new Hashtable();
+            this.scripts.Add("tbLogin", BLOs.Taobao.OrderUtil.Login);
+            this.scripts.Add("tbFetchOrderData", BLOs.Taobao.OrderUtil.FetchOrderData);
+            this.scripts.Add("openBaidu", BLOs.Test.Class1.OpenBaidu);
+            this.scripts.Add("openTestPage", BLOs.Test.Class1.OpenTestPage);
+            this.scripts.Add("execInjoinScript", BLOs.Test.Class1.execInjoinScript);
         }
 
-        private void MenuItem_Click_1(object sender, RoutedEventArgs e) {
-
-        }
-
-        private void menuTaobaoOrder_Click(object sender, RoutedEventArgs e) {
+        private void MenuItem_Click(object sender, RoutedEventArgs e) {
             MenuItem menuItem = (MenuItem)sender;
-            MenuItem menuItemParent = (MenuItem)menuItem.Parent;
-        }
-
-        private void menuPDDBK_Click(object sender, RoutedEventArgs e) {
-            XingWebBrowser browser = this.appendTabItem("拼多多订单管理");
-
-        }
-
-        private void menuOpenTestPage_onClick(object sender, RoutedEventArgs e) {
-            XingWebBrowser browser = this.appendTabItem("脚本测试");
-            browser.Open("D:/Documents/WPF-CEF-B2C-Tools/WPF-CEF-B2C-Tools/blank.html");
+            string cmd = menuItem.DataContext.ToString();
+            if (cmd.StartsWith('N')) {
+                this.appendTabItem(menuItem.Header.ToString());
+                cmd = cmd.TrimStart('N');
+            }
+            XingWebBrowser browser = (XingWebBrowser)((TabItem)this.mainTab.SelectedItem).Content;
+            if (cmd.Length > 0) {
+                ProcessEngine.RunProcess((Process)this.scripts[cmd], browser);
+            }
         }
     }
 }

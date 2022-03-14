@@ -11,12 +11,14 @@ namespace WPF_CEF_B2C_Tools {
         public static void RunProcess(Process process, XingWebBrowser browser) {
             ProcessInstance inc = instantiateProc(process, browser);
             BrowserTask task = (BrowserTask)inc.nextTask();
-            browser.RunTask(task);
+            if (task != null)
+                browser.RunTask(task);
         }
         // 继续运行一个流程实例
         public static void RunProcessNext(ProcessInstance instance) {
             BrowserTask task = (BrowserTask)instance.nextTask();
-            instance.webBrowser.RunTask(task);
+            if (task != null)
+                instance.webBrowser.RunTask(task);
         }
         // 实例化一个流程
         private static ProcessInstance instantiateProc(Process process, XingWebBrowser browser) {

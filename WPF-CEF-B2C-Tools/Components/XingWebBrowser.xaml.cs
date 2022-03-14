@@ -85,6 +85,7 @@ namespace WPF_CEF_B2C_Tools.Components {
                     this._task.Status = TaskStatus.Closed;
                 }
             }
+            this.log("=====================FrameLoadEnd=======================");
         }
 
         public void log(string msg) {
@@ -124,7 +125,7 @@ namespace WPF_CEF_B2C_Tools.Components {
         }
 
         private void UserControl_Initialized(object sender, EventArgs e) {
-            browser.RequestHandler = new XingBasicRequestHandler();
+            browser.RequestHandler = new XingBasicRequestHandler(this);
             browser.FrameLoadEnd += Cef_FrameLoadEnd;
             browser.AddressChanged += Cef_AddressChanged;
             browser.KeyboardHandler = new CEFKeyBoardHander();
@@ -144,31 +145,46 @@ namespace WPF_CEF_B2C_Tools.Components {
     }
 
     class XingRequestHandler : CefSharp.Handler.ResourceRequestHandler {
-        private readonly System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
+        XingWebBrowser xingWebBrowser;
+        public XingRequestHandler(XingWebBrowser xingWebBrowser) {
+            this.xingWebBrowser = xingWebBrowser;
+        }
 
+        private readonly System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
         protected override IResponseFilter GetResourceResponseFilter(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IResponse response) {
             return new CefSharp.ResponseFilter.StreamResponseFilter(memoryStream);
         }
-
+        
+        //拦截请求，自定义处理程序
+        // Ajax 请求
         protected override void OnResourceLoadComplete(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IResponse response, UrlRequestStatus status, long receivedContentLength) {
             //You can now get the data from the stream
             var bytes = memoryStream.ToArray();
 
             if (response.Charset == "utf-8") {
                 var str = System.Text.Encoding.UTF8.GetString(bytes);
-                Console.WriteLine("In OnResourceLoadComplete : " + str.Substring(0, 10) + " <...>");
+                this.xingWebBrowser.log("In OnResourceLoadComplete : " + str.Substring(0, 10) + " <...>");
+            } else if (response.Charset == "gbk") {
+                var str = System.Text.Encoding.GetEncoding("GB2312").GetString(bytes);
+                this.xingWebBrowser.log("In OnResourceLoadComplete : " + str.Substring(0, 10) + " <...>");
             } else {
                 //Deal with different encoding here
             }
         }
     }
     public class XingBasicRequestHandler : CefSharp.Handler.RequestHandler {
+        XingWebBrowser xingWebBrowser;
+        public XingBasicRequestHandler(XingWebBrowser webBrowser) {
+            this.xingWebBrowser = webBrowser;
+        }
+
         protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
             //Only intercept specific Url's
             //https://trade.taobao.com/trade/itemlist/list_sold_items.htm?userSwitch=1
             //https://trade.taobao.com/trade/itemlist/asyncSold.htm?event_submit_do_query=1&_input_charset=utf8&sifg=0
+            // 不同的请求地址，用不同的处理程序
             if (request.Url.Contains("/asyncSold.htm")) {
-                return new XingRequestHandler();
+                return new XingRequestHandler(this.xingWebBrowser);
             }
             //Default behaviour, url            will be loaded normally.
             return null;
